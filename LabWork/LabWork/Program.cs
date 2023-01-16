@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LabWork
 {
@@ -14,7 +10,7 @@ namespace LabWork
             double varY;
             double varZ;
 
-            Console.Write("Use the default parameters?\ny=2; t=5/(1+y2); z=4; [y|<other>]: ");
+            Console.Write("Use the default parameters?\ny=2; z=4; t=5/(1+y^2) [y|<other>]: ");
 
             string decision = Console.ReadLine();
 
@@ -24,6 +20,7 @@ namespace LabWork
                     varZ = 4;
 
                     break;
+
                 default:
                     Console.Write("Enter the \"y\" parameter: ");
                     varY = Convert.ToDouble(Console.ReadLine());
@@ -34,16 +31,12 @@ namespace LabWork
             }
 
             double varT = 5 / (1 + Math.Pow(varY, 2));
-            varX = calculateFunc(varY, varT, varZ);
+            varX = (2 * y + 3 * t) / z;
 
             Console.WriteLine("x = " + varX);
-            Console.ReadLine();
-        }
 
-        static double calculateFunc(double y, double t, double z)
-        {
-            // x = (2y + 3*t)/ z 
-            return (2 * y + 3 * t) / z;
+            Console.Write("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LabWork3
 {
@@ -17,64 +13,66 @@ namespace LabWork3
         public int flightTime;
         public int arrivalTime;
 
-        public void ShowInfo()
+        public static void ShowNotification(string msg, int level = 0, char delimiter = '-')
+        {
+            string[] notificationLevels = new string[] {"INFO", "WARNING", "CRITICAL" };
+            string msgPrefix = notificationLevels[level % notificationLevels.Length];
+
+            string delimiterString = new string(delimiter, 40);
+            Console.WriteLine($"\n{delimiterString}\n{msgPrefix}: {msg}\n{delimiterString}\n");
+        }
+
+        public static string getTimeString(int timeMinutes)
         {
             int hour = 60;
 
-            int depHours = departureTime / hour;
-            int depMinutes = departureTime % hour;
+            timeMinutes %= hour*24;
 
-            int flightHours = flightTime / hour;
-            int flightMinutes = flightTime % hour;
-
-            int arrivalHours = arrivalTime / hour;
-            int arrivalMinutes = arrivalTime % hour;
-
-            Console.WriteLine($"Рейс № {flightNumber}:\n\t{departurePoint} ---> {destinationPoint}\n\tПилот: {flightPilot}\n\tОтправление - прибытие: {depHours}:{depMinutes} - {arrivalHours}:{arrivalMinutes}\n\tВремя в полете: {flightHours}ч. {flightMinutes}мин.\n");
+            return $"{timeMinutes / hour:d2}:{timeMinutes % hour:d2}";
         }
 
-        public void DelayFlight()
+        public void ShowInfo()
         {
+            int flightHours = flightTime / 60;
+            int flightMinutes = flightTime % 60;
 
+            // Старая версия
+            //Console.WriteLine($"Рейс № {flightNumber}:\n\t{departurePoint} ---> {destinationPoint}\n\tПилот: {flightPilot}\n\tОтправление - прибытие: {depHours}:{depMinutes:d2} - {arrivalHours}:{arrivalMinutes:d2}\n\tВремя в полете: {flightHours}ч. {flightMinutes}мин.\n");
+            Console.WriteLine($"Рейс № {flightNumber}:");
+            Console.WriteLine($"\t{departurePoint} ---> {destinationPoint}");
+            Console.WriteLine($"\tПилот: {flightPilot}");
+            Console.WriteLine($"\tОтправление - прибытие: {getTimeString(departureTime)} - {getTimeString(arrivalTime)}");
+            Console.WriteLine($"\tВремя в полете: {flightHours} ч. {flightMinutes} мин.\n");
         }
 
-        public Flight()
+        public void DelayFlight(int delayTime = 60)
         {
-            flightNumber = "NULL";
-            departurePoint = "NULL";
-            destinationPoint = "NULL";
-            flightPilot = "NULL";
-
-            departureTime = 0;
-            flightTime = 0;
-            arrivalTime = departureTime + flightTime;
+            if (flightNumber != "NULL" & delayTime > 0)
+            {
+                departureTime += delayTime;
+                arrivalTime = departureTime + flightTime;
+                ShowNotification($"Рейс № {flightNumber} задержан до {getTimeString(departureTime)}");
+            }
+            else
+            {
+                if (flightNumber == "NULL") ShowNotification("Сначала задайте номер рейса!", 1);
+                else if (delayTime <= 0) ShowNotification("Рейс можно только задержать!", 2);
+            }
         }
 
-        public Flight(string number, string departure, string destination)
+        public Flight() : this("NULL", "NULL", "NULL")
         {
-            flightNumber = number;
-            departurePoint = departure;
-            destinationPoint = destination;
-            flightPilot = "NULL";
-
-            departureTime = 0;
-            flightTime = 0;
-            arrivalTime = departureTime + flightTime;
         }
 
-        public Flight(string number, string departure, string destination, string pilot)
+        public Flight(string number, string departure, string destination) : this(number, departure, destination, "NULL")
         {
-            flightNumber = number;
-            departurePoint = departure;
-            destinationPoint = destination;
-            flightPilot = pilot;
-
-            departureTime = 0;
-            flightTime = 0;
-            arrivalTime = departureTime + flightTime;
         }
 
-        public Flight(string number, string departure, string destination, string pilot, int depTime, int flightDur)
+        public Flight(string number, string departure, string destination, string pilot) : this(number, departure, destination, pilot, 0, 0)
+        {
+        }
+
+        public Flight(string number, string departure, string destination, string pilot, int depTime, int flightDuration)
         {
             flightNumber = number;
             departurePoint = departure;
@@ -82,7 +80,7 @@ namespace LabWork3
             flightPilot = pilot;
 
             departureTime = depTime;
-            flightTime = flightDur;
+            flightTime = flightDuration;
             arrivalTime = departureTime + flightTime;
         }
     }
@@ -91,9 +89,56 @@ namespace LabWork3
     {
         static void Main(string[] args)
         {
-            Flight flight = new Flight("F-201B", "New York", "LA");
+            // Пустой рейс для примера
+            Flight.ShowNotification("Первый рейс", delimiter: '*');
+
+            Flight testFlight = new Flight();
+            // Везде покажет 0 или NULL
+            testFlight.ShowInfo();
+
+            testFlight.DelayFlight();
+            // После того, как покажется оповещение, меняем номер рейса
+            testFlight.flightNumber = "F-200B";
+            // Пытаемся отложить на отрицательное время, видим оповещение
+            testFlight.DelayFlight(-100);
+            // Меняем время полета с 0 минут на 120 минут
+            testFlight.flightTime = 120;
+            // Правильно откладываем рейс
+            testFlight.DelayFlight(600);
+            // Вуаля!
+            testFlight.ShowInfo();
+
+            // Пример правильного рейса
+            Flight.ShowNotification("Второй рейс", delimiter: '*');
+
+            Flight flight = new Flight(number: "F-201B",
+                                       departure: "London",
+                                       destination: "Moscow",
+                                       pilot: "Till Lindemann",
+                                       depTime: 600,
+                                       flightDuration: 245);
             flight.ShowInfo();
 
+            // Пример с инициализатором объектов, приходится вносить время прибытия вручную
+            Flight.ShowNotification("Третий рейс", delimiter: '*');
+
+            Flight flight2 = new Flight {
+                flightNumber = "F-201B",
+                departurePoint = "NYC",
+                destinationPoint = "Singapore",
+                flightPilot = "Dan Reynolds",
+                departureTime = 720,
+                flightTime = 720,
+                arrivalTime = 1440
+            };
+
+            flight2.ShowInfo();
+            // Отложим рейс и посмотрим, что будет
+            flight2.DelayFlight();
+            // Все сработало)
+            flight2.ShowInfo();
+
+            Console.Write("Для выхода нажмите любую клавишу...");
             Console.ReadKey();
         }
     }
